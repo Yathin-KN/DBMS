@@ -6,7 +6,7 @@ const cors = require('cors');
 //importing models here :-
 const UserProjects = require('./models/userProjects');
 const Project = require('./models/createProject');
-
+const User = require('./models/userInfo');
 
 const app = express();
 
@@ -21,6 +21,36 @@ const db = mongoose.connection;
 
 
 const PORT=5000;
+//post user information :-
+app.post('/user',(req,res)=>{
+  const {userID,name,email,password} =req.body;
+  const user=new User({userID,name,email,password});
+  console.log(req.body);
+  user.save((error) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.status(200).send('Project saved successfully.');
+    }
+  });
+})
+
+//to find all project id of a userId
+app.get('/projects/:userID', (req, res) => {
+  const userID = req.params.userID;
+  UserProjects.findOne({ userID: userID }, (err, userProjects) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    if (!userProjects) {
+      return res.status(404).send('No user found with that ID');
+    }
+    res.send(userProjects.projects);
+  });
+});
+
+
+
 app.get('/',(req,res)=>{
     res.send("hello");
 })
@@ -36,16 +66,9 @@ app.get("/projects", (req, res) => {
 });
 
 app.post('/', (req, res) => {
-  const data=req.body;
-  console.log(data);
-  const project = new Project({
-    name: data.name,
-    description: data.description,
-    roles: data.roles,
-    applicants:data.applicants,
-    id: data.id,
-    maxSize: data.maxSize,
-  });
+  const {creatorId,projectName,projectId,creatorName,Description,Team,MaxSize,Duration,Technology,Applicants}=req.body.data;
+  console.log("recieved data ",req.body.data);
+  const project = new Project({creatorId,projectName,projectId,creatorName,Description,Team,MaxSize,Duration,Technology,Applicants});
   project.save((error) => {
     if (error) {
       res.status(500).send(error);
